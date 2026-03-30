@@ -16,9 +16,17 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
+def _normalize_db_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return url
+
 def get_url() -> str:
-    # Always prefer DATABASE_URL env var (set by Docker Compose)
-    return os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    # Always prefer DATABASE_URL env var (set by Railway/Docker Compose/Neon)
+    raw = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    return _normalize_db_url(raw)
 
 def run_migrations_offline() -> None:
     url = get_url()
