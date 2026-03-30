@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import NavBar from '../components/ui/NavBar'
 import Sidebar from '../components/ui/Sidebar'
 import {
   transactionsApi, categoriesApi, checklistApi,
-  type CategoryInfo, type CategoryCreate, type Transaction,
+  type CategoryInfo, type CategoryCreate,
 } from '../lib/api'
 
 type MonthKey = 'JAN'|'FEB'|'MAR'|'APR'|'MAY'|'JUN'|'JUL'|'AUG'|'SEP'|'OCT'|'NOV'|'DEC'
