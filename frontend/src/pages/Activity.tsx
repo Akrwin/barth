@@ -52,49 +52,49 @@ function TransactionRow({ txn, onDelete }: { txn: Transaction; onDelete: (id: st
   const amount = Math.abs(txn.amount).toLocaleString('th-TH', { minimumFractionDigits: 2 })
 
   return (
-    <div className="flex items-center gap-4 border-2 border-black p-5 hover:bg-black hover:text-white group transition-colors">
-      <div className="w-11 h-11 border-2 border-black group-hover:border-white flex items-center justify-center flex-shrink-0 transition-colors">
-        <span className="material-symbols-outlined text-xl">{icon}</span>
+    <div className="flex items-center gap-3 border-2 border-black p-3 md:p-5 hover:bg-black hover:text-white group transition-colors overflow-hidden">
+      <div className="w-9 h-9 md:w-11 md:h-11 border-2 border-black group-hover:border-white flex items-center justify-center flex-shrink-0 transition-colors">
+        <span className="material-symbols-outlined text-lg md:text-xl">{icon}</span>
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="font-label font-bold uppercase tracking-wider text-sm truncate">
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <p className="font-label font-bold uppercase tracking-wider text-sm overflow-hidden text-ellipsis whitespace-nowrap max-w-full">
           {txn.note ?? txn.category?.name ?? 'TRANSACTION'}
         </p>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <span className={`font-label font-bold text-[10px] uppercase tracking-widest px-2 py-0.5 border ${
+        <div className="flex items-center gap-2 mt-1 overflow-hidden">
+          <span className={`font-label font-bold text-[10px] uppercase tracking-widest px-2 py-0.5 border flex-shrink-0 ${
             isIncome
               ? 'border-black group-hover:border-white'
               : 'border-black/40 group-hover:border-white/50 text-black/60 group-hover:text-white/60'
           }`}>
             {txn.type}
           </span>
-          <span className="text-[10px] text-black/40 group-hover:text-white/50 uppercase tracking-widest font-label transition-colors">
+          <span className="text-[10px] text-black/40 group-hover:text-white/50 uppercase tracking-widest font-label transition-colors truncate">
             {txn.category?.name ?? '—'} • {new Date(txn.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       </div>
 
-      <div className={`font-headline tracking-tighter flex-shrink-0 text-right ${isIncome ? 'text-2xl font-black' : 'text-xl font-bold'}`}>
+      <div className={`font-headline tracking-tighter flex-shrink-0 text-right min-w-[90px] md:min-w-[110px] ${isIncome ? 'text-lg md:text-2xl font-black' : 'text-base md:text-xl font-bold'}`}>
         {isIncome ? '+' : '-'}฿{amount}
       </div>
 
       {confirmDelete ? (
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row gap-1 flex-shrink-0">
           <button onClick={() => onDelete(txn.id)}
-            className="font-label font-bold text-[10px] uppercase tracking-widest px-3 py-2 bg-black text-white group-hover:bg-white group-hover:text-black border-2 border-black group-hover:border-white transition-colors">
-            CONFIRM
+            className="font-label font-bold text-[10px] uppercase tracking-widest px-2 py-2 bg-black text-white group-hover:bg-white group-hover:text-black border-2 border-black group-hover:border-white transition-colors">
+            OK
           </button>
           <button onClick={() => setConfirmDelete(false)}
-            className="font-label font-bold text-[10px] uppercase tracking-widest px-3 py-2 border-2 border-black group-hover:border-white transition-colors">
-            CANCEL
+            className="font-label font-bold text-[10px] uppercase tracking-widest px-2 py-2 border-2 border-black group-hover:border-white transition-colors">
+            NO
           </button>
         </div>
       ) : (
         <button onClick={() => setConfirmDelete(true)}
-          className="w-9 h-9 flex items-center justify-center flex-shrink-0 border-2 border-black group-hover:border-white hover:bg-white hover:text-black group-hover:hover:bg-black/80 transition-colors opacity-0 group-hover:opacity-100"
+          className="w-8 h-8 flex items-center justify-center flex-shrink-0 border-2 border-black group-hover:border-white hover:bg-white hover:text-black group-hover:hover:bg-black/80 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100"
           title="Delete">
-          <span className="material-symbols-outlined text-base">delete</span>
+          <span className="material-symbols-outlined text-sm">delete</span>
         </button>
       )}
     </div>
@@ -160,9 +160,9 @@ export default function Activity() {
         <div className="max-w-[1440px] border-r-2 border-black min-h-screen">
 
           {/* ── Header ── */}
-          <div className="flex flex-col md:flex-row justify-between items-end p-12 border-b-2 border-black gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-end p-5 md:p-12 border-b-2 border-black gap-4 md:gap-6">
             <div>
-              <h1 className="font-headline font-black text-8xl uppercase tracking-tighter leading-none">ACTIVITY</h1>
+              <h1 className="font-headline font-black text-[clamp(2.5rem,8vw,6rem)] uppercase tracking-tighter leading-none">ACTIVITY</h1>
               <p className="font-label text-xs font-bold uppercase tracking-widest text-black/40 mt-2">
                 REAL-TIME FINANCIAL LEDGER
               </p>
@@ -183,7 +183,7 @@ export default function Activity() {
           </div>
 
           {/* ── Dynamic filter bar ── */}
-          <div className="flex flex-wrap items-center gap-3 px-12 py-5 border-b-2 border-black">
+          <div className="flex flex-wrap items-center gap-2 px-5 py-4 md:px-12 md:py-5 border-b-2 border-black">
             <span className="font-label text-xs font-bold uppercase tracking-widest text-black/40">FILTER:</span>
             {isLoading ? (
               <Skeleton className="h-9 w-16" />
@@ -205,7 +205,7 @@ export default function Activity() {
           </div>
 
           {/* ── Transaction list ── */}
-          <div className="p-12 space-y-10">
+          <div className="p-5 md:p-12 space-y-6 md:space-y-10">
             {isLoading ? (
               Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
             ) : groups.length === 0 ? (
@@ -215,8 +215,8 @@ export default function Activity() {
             ) : (
               groups.map(g => (
                 <div key={g.label}>
-                  <div className="flex justify-between items-baseline mb-6">
-                    <h2 className="font-headline font-black text-4xl uppercase tracking-tighter">{g.label}</h2>
+                  <div className="flex justify-between items-baseline mb-3 md:mb-6">
+                    <h2 className="font-headline font-black text-2xl md:text-4xl uppercase tracking-tighter">{g.label}</h2>
                     <span className="font-label text-xs font-bold uppercase tracking-widest text-black/40">{g.date}</span>
                   </div>
                   <div className="border-t-2 border-black space-y-0">
@@ -231,17 +231,17 @@ export default function Activity() {
 
           {/* ── Bottom summary ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 border-t-2 border-black">
-            <div className="p-12 border-r-2 border-black">
+            <div className="p-5 md:p-12 border-r-2 border-black">
               <p className="font-label text-xs font-bold uppercase tracking-widest text-black/40 mb-2">MONTHLY VOLUME</p>
-              <p className="font-headline font-black text-6xl tracking-tighter mb-2">
+              <p className="font-headline font-black text-4xl md:text-6xl tracking-tighter mb-2">
                 ฿{totalOutflow.toLocaleString('th-TH', { maximumFractionDigits: 0 })}
               </p>
               <p className="font-label text-xs font-bold uppercase tracking-widest text-black/40 mb-4">TOTAL OUTFLOW</p>
               <ProgressBar percentage={Math.min(utilization, 100)} />
             </div>
-            <div className="p-12 bg-black text-white">
+            <div className="p-5 md:p-12 bg-black text-white">
               <p className="font-label text-xs font-bold uppercase tracking-widest text-white/40 mb-2">BUDGET STATUS</p>
-              <p className="font-headline font-black text-6xl tracking-tighter mb-3">{utilization}%</p>
+              <p className="font-headline font-black text-4xl md:text-6xl tracking-tighter mb-3">{utilization}%</p>
               <p className="font-label text-xs font-bold uppercase tracking-wider text-white/60 mb-8">
                 UTILIZATION FOR {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.
               </p>

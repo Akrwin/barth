@@ -213,13 +213,13 @@ export default function Installments() {
 
       <main className="pt-20 md:pl-48 pb-16 md:pb-0 min-h-screen">
         <div className="max-w-[1440px] border-r-2 border-black min-h-screen">
-          <div className="p-12">
+          <div className="p-5 md:p-12">
 
             {/* ── Header ── */}
-            <div className="flex flex-col md:flex-row justify-between items-end border-b-2 border-black pb-12 gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-end border-b-2 border-black pb-5 md:pb-12 gap-4 md:gap-6">
               <div>
-                <h1 className="font-headline font-black text-8xl uppercase tracking-tighter leading-none">ACTIVE</h1>
-                <h1 className="font-headline font-black text-8xl uppercase tracking-tighter leading-none">PLANS.</h1>
+                <h1 className="font-headline font-black text-[clamp(2.5rem,8vw,6rem)] uppercase tracking-tighter leading-none">ACTIVE</h1>
+                <h1 className="font-headline font-black text-[clamp(2.5rem,8vw,6rem)] uppercase tracking-tighter leading-none">PLANS.</h1>
                 <p className="font-label text-xs font-bold uppercase tracking-widest text-black/40 mt-3">
                   AGGREGATE EXPOSURE & REPAYMENT
                 </p>
@@ -228,7 +228,7 @@ export default function Installments() {
                 <p className="font-label text-xs font-bold uppercase tracking-widest text-black/40 mb-2">MONTHLY TOTAL</p>
                 {isLoading
                   ? <Skeleton className="h-12 w-44 ml-auto" />
-                  : <p className="font-headline font-black text-5xl tracking-tighter">
+                  : <p className="font-headline font-black text-3xl md:text-5xl tracking-tighter">
                       ฿{monthlyTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                 }

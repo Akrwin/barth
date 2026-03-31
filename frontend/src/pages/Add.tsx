@@ -351,6 +351,7 @@ export default function Add() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
+  const [checklistOpen, setChecklistOpen] = useState(false)
   const [selectedMonthIdx, setSelectedMonthIdx] = useState(CURRENT_MONTH_IDX)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [amount, setAmount] = useState('')
@@ -427,18 +428,18 @@ export default function Add() {
 
           {/* ── LEFT: FORM ── */}
           <div className="border-r-2 border-black">
-            <div className="p-12">
+            <div className="p-5 md:p-12">
 
               {/* Header */}
-              <div className="border-b-2 border-black pb-12 mb-12">
-                <h1 className="font-headline font-black text-8xl uppercase tracking-tighter leading-none">NEW RECORD</h1>
+              <div className="border-b-2 border-black pb-5 mb-5 md:pb-12 md:mb-12">
+                <h1 className="font-headline font-black text-[clamp(2.5rem,8vw,6rem)] uppercase tracking-tighter leading-none">NEW RECORD</h1>
                 <p className="font-label text-xs font-bold uppercase tracking-[0.2em] text-black/40 mt-3">
                   TRANSACTION ENTRY — {CURRENT_YEAR}
                 </p>
               </div>
 
               {/* Type toggle */}
-              <div className="border-b-2 border-black pb-12 mb-12">
+              <div className="border-b-2 border-black pb-5 mb-5 md:pb-12 md:mb-12">
                 <p className="font-label text-xs font-bold uppercase tracking-widest mb-4">TRANSACTION TYPE</p>
                 <div className="flex">
                   {(['EXPENSE','INCOME'] as const).map(t => (
@@ -451,20 +452,20 @@ export default function Add() {
               </div>
 
               {/* Amount */}
-              <div className="border-b-2 border-black pb-12 mb-12">
+              <div className="border-b-2 border-black pb-5 mb-5 md:pb-12 md:mb-12">
                 <p className="font-label text-xs font-bold uppercase tracking-widest mb-4">AMOUNT (THB)</p>
                 <div className={`flex items-baseline gap-2 border-b-2 border-black px-2 py-4 transition-colors ${amountFocused ? 'bg-black text-white' : 'bg-white text-black'}`}>
-                  <span className="font-headline font-black text-7xl tracking-tighter leading-none">฿</span>
+                  <span className="font-headline font-black text-[clamp(2.5rem,10vw,5rem)] tracking-tighter leading-none">฿</span>
                   <input type="text" inputMode="decimal" placeholder="0.00" value={amount}
                     onChange={e => setAmount(e.target.value)}
                     onFocus={() => setAmountFocused(true)} onBlur={() => setAmountFocused(false)}
-                    className={`font-headline font-black text-7xl tracking-tighter leading-none bg-transparent outline-none w-full placeholder:text-black/20 ${amountFocused ? 'placeholder:text-white/20 text-white' : ''}`}
+                    className={`font-headline font-black text-[clamp(2.5rem,10vw,5rem)] tracking-tighter leading-none bg-transparent outline-none w-full placeholder:text-black/20 ${amountFocused ? 'placeholder:text-white/20 text-white' : ''}`}
                   />
                 </div>
               </div>
 
               {/* Month Selector */}
-              <div className="border-b-2 border-black pb-12 mb-12">
+              <div className="border-b-2 border-black pb-5 mb-5 md:pb-12 md:mb-12">
                 <p className="font-label text-xs font-bold uppercase tracking-widest mb-6">TRANSACTION MONTH</p>
                 <div className="grid grid-cols-6 gap-0">
                   {MONTHS.map((m, i) => (
@@ -477,7 +478,7 @@ export default function Add() {
               </div>
 
               {/* Category Selector */}
-              <div className="border-b-2 border-black pb-12 mb-12">
+              <div className="border-b-2 border-black pb-5 mb-5 md:pb-12 md:mb-12">
                 <div className="flex justify-between items-center mb-6">
                   <p className="font-label text-xs font-bold uppercase tracking-widest">
                     {txType === 'INCOME' ? 'INCOME SOURCE' : 'EXPENSE CATEGORY'}
@@ -519,7 +520,7 @@ export default function Add() {
               )}
 
               {/* Note */}
-              <div className="border-b-2 border-black pb-12 mb-12">
+              <div className="border-b-2 border-black pb-5 mb-5 md:pb-12 md:mb-12">
                 <p className="font-label text-xs font-bold uppercase tracking-widest mb-4">NOTE / DESCRIPTION</p>
                 <p className="font-label text-[10px] font-bold uppercase tracking-widest text-black/30 mb-3">
                   MATCHES CHECKLIST ITEMS AUTOMATICALLY
@@ -542,13 +543,44 @@ export default function Add() {
             </div>
           </div>
 
-          {/* ── RIGHT: CHECKLIST ── */}
+          {/* ── RIGHT: CHECKLIST (desktop) ── */}
           <div className="hidden lg:block">
             <ChecklistPanel monthIdx={selectedMonthIdx} year={CURRENT_YEAR} />
           </div>
 
         </div>
       </main>
+
+      {/* ── Mobile: floating checklist button ── */}
+      <button
+        onClick={() => setChecklistOpen(true)}
+        className="fixed right-4 bottom-24 z-30 lg:hidden w-12 h-12 bg-black text-white border-2 border-black flex items-center justify-center shadow-lg"
+        title="Checklist"
+      >
+        <span className="material-symbols-outlined text-xl">checklist</span>
+      </button>
+
+      {/* ── Mobile: checklist drawer backdrop ── */}
+      {checklistOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
+          onClick={() => setChecklistOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile: checklist drawer ── */}
+      <div className={`fixed right-0 top-0 h-full w-80 bg-white z-50 transition-transform duration-300 lg:hidden overflow-y-auto ${checklistOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex justify-between items-center px-5 py-4 border-b-2 border-black sticky top-0 bg-white">
+          <span className="font-headline font-black text-lg uppercase tracking-tighter">NOTEBOOK</span>
+          <button
+            onClick={() => setChecklistOpen(false)}
+            className="w-9 h-9 border-2 border-black flex items-center justify-center hover:bg-black hover:text-white transition-colors"
+          >
+            <span className="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+        <ChecklistPanel monthIdx={selectedMonthIdx} year={CURRENT_YEAR} />
+      </div>
     </div>
   )
 }
