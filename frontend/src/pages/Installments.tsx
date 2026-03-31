@@ -248,8 +248,20 @@ export default function Installments() {
     return sum + remaining
   }, 0)
 
-  // ── Build forecast: next 6 months, summing only active plans per month ────────
-  const forecastMonths = Array.from({ length: 6 }, (_, idx) => {
+  // ── Calculate last month any installment is still active ────────────────────
+  const lastActiveOffset = items.reduce((maxOffset: number, item: InstallmentOut) => {
+    const { y: sy, m: sm } = getStartYM(item)
+    // The last active month offset from NOW is: start + months_total - 1, relative to NOW
+    const endOffsetFromNow =
+      (sy - NOW.getFullYear()) * 12 + (sm - NOW.getMonth()) + item.months_total - 1
+    return Math.max(maxOffset, endOffsetFromNow)
+  }, 0)
+
+  // Always show at least 6 months, up to however long plans run
+  const forecastLength = Math.max(6, lastActiveOffset + 1)
+
+  // ── Build forecast: all months until last plan finishes ──────────────────────
+  const forecastMonths = Array.from({ length: forecastLength }, (_, idx) => {
     const d = new Date(NOW.getFullYear(), NOW.getMonth() + idx, 1)
     const ty = d.getFullYear()
     const tm = d.getMonth()
@@ -394,24 +406,26 @@ export default function Installments() {
                       </p>
                     </div>
                   ) : (
-                    forecastMonths.map((f, i) => (
-                      <div key={f.label}
-                        className={`flex justify-between items-center px-8 py-4 ${i < forecastMonths.length - 1 ? 'border-b border-black' : ''} ${f.hasPayments ? 'hover:bg-black hover:text-white group' : 'opacity-40'} transition-colors`}>
-                        <span className="font-label text-xs font-bold uppercase tracking-widest text-black/60 group-hover:text-white/60">{f.label}</span>
-                        <div className="flex items-center gap-2">
-                          {f.hasPayments ? (
-                            <>
-                              <span className="font-headline font-black text-xl tracking-tighter">
-                                ฿{f.total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                              </span>
-                              <span className="material-symbols-outlined text-base">arrow_forward</span>
-                            </>
-                          ) : (
-                            <span className="font-label text-xs font-bold uppercase tracking-widest text-black/30">—</span>
-                          )}
+                    <div className="overflow-y-auto max-h-[420px]">
+                      {forecastMonths.map((f, i) => (
+                        <div key={f.label}
+                          className={`flex justify-between items-center px-8 py-4 ${i < forecastMonths.length - 1 ? 'border-b border-black' : ''} ${f.hasPayments ? 'hover:bg-black hover:text-white group' : 'opacity-30'} transition-colors`}>
+                          <span className="font-label text-xs font-bold uppercase tracking-widest text-black/60 group-hover:text-white/60">{f.label}</span>
+                          <div className="flex items-center gap-2">
+                            {f.hasPayments ? (
+                              <>
+                                <span className="font-headline font-black text-xl tracking-tighter">
+                                  ฿{f.total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                                </span>
+                                <span className="material-symbols-outlined text-base">arrow_forward</span>
+                              </>
+                            ) : (
+                              <span className="font-label text-xs font-bold uppercase tracking-widest text-black/30">—</span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   )}
                 </div>
 
