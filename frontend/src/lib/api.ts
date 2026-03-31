@@ -75,6 +75,7 @@ export interface InstallmentOut {
   total_amount: number
   months_total: number
   months_paid: number
+  first_payment_date: string | null
   next_billing_date: string | null
   created_at: string
 }
@@ -84,6 +85,7 @@ export interface InstallmentCreate {
   category?: string | null
   total_amount: number
   months_total: number
+  first_payment_date?: string | null
   next_billing_date?: string | null
 }
 

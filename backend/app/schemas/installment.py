@@ -7,6 +7,7 @@ class InstallmentCreate(BaseModel):
     category: str | None = None
     total_amount: float
     months_total: int
+    first_payment_date: date | None = None
     next_billing_date: date | None = None
 
 class InstallmentOut(BaseModel):
@@ -16,6 +17,7 @@ class InstallmentOut(BaseModel):
     total_amount: float
     months_total: int
     months_paid: int
+    first_payment_date: date | None = None
     next_billing_date: date | None = None
     created_at: datetime
     model_config = {"from_attributes": True}

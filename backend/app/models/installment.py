@@ -15,6 +15,7 @@ class Installment(Base):
     months_total: Mapped[int] = mapped_column(Integer, nullable=False)
     months_paid: Mapped[int] = mapped_column(Integer, default=0)
     next_billing_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    first_payment_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship(back_populates="installments")

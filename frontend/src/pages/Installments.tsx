@@ -39,9 +39,19 @@ function AddInstallmentModal({
   const [category, setCategory] = useState('')
   const [totalAmount, setTotalAmount] = useState('')
   const [monthsTotal, setMonthsTotal] = useState('')
+  const [firstPaymentDate, setFirstPaymentDate] = useState('')
   const [billingDate, setBillingDate] = useState('')
   const [error, setError] = useState('')
   const [focusedField, setFocusedField] = useState<string | null>(null)
+
+  // Auto-calculate months_paid from first_payment_date
+  const calcMonthsPaid = (): number => {
+    if (!firstPaymentDate) return 0
+    const start = new Date(firstPaymentDate)
+    const now = new Date()
+    const diff = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
+    return Math.max(0, diff)
+  }
 
   const handleSave = () => {
     if (!name.trim()) { setError('NAME IS REQUIRED'); return }
@@ -54,6 +64,7 @@ function AddInstallmentModal({
       category: category.trim().toUpperCase() || null,
       total_amount: amt,
       months_total: months,
+      first_payment_date: firstPaymentDate || null,
       next_billing_date: billingDate || null,
     })
   }
@@ -124,9 +135,35 @@ function AddInstallmentModal({
             )}
           </div>
 
+          {/* First Payment Date */}
+          <div>
+            <p className="font-label text-xs font-bold uppercase tracking-widest mb-1">วันที่จ่ายงวดแรก (OPTIONAL)</p>
+            <p className="font-label text-[10px] font-bold uppercase tracking-widest text-black/40 mb-3">
+              ระบุเพื่อคำนวณงวดที่เหลือและ forecast อัตโนมัติ
+            </p>
+            <input type="date"
+              value={firstPaymentDate} onChange={e => setFirstPaymentDate(e.target.value)}
+              onFocus={() => setFocusedField('firstPayment')} onBlur={() => setFocusedField(null)}
+              className={inputClass('firstPayment')}
+            />
+            {firstPaymentDate && monthsTotal && (() => {
+              const paid = calcMonthsPaid()
+              const total = parseInt(monthsTotal) || 0
+              const remaining = Math.max(0, total - paid)
+              return (
+                <p className="font-label text-xs font-bold uppercase tracking-widest text-black/50 mt-2">
+                  จ่ายแล้ว {paid} งวด → เหลืออีก {remaining} งวด
+                </p>
+              )
+            })()}
+          </div>
+
           {/* Next Billing Date */}
           <div>
-            <p className="font-label text-xs font-bold uppercase tracking-widest mb-3">NEXT BILLING DATE (OPTIONAL)</p>
+            <p className="font-label text-xs font-bold uppercase tracking-widest mb-1">NEXT BILLING DATE (OPTIONAL)</p>
+            <p className="font-label text-[10px] font-bold uppercase tracking-widest text-black/40 mb-3">
+              ใช้เป็นวันเริ่มต้นงวดแรก หากไม่ได้ระบุวันจ่ายงวดแรก
+            </p>
             <input type="date"
               value={billingDate} onChange={e => setBillingDate(e.target.value)}
               onFocus={() => setFocusedField('date')} onBlur={() => setFocusedField(null)}
@@ -178,10 +215,32 @@ export default function Installments() {
     },
   })
 
-  // Compute totals
-  const monthlyTotal = items.reduce((sum: number, i: InstallmentOut) => {
-    const monthlyAmt = i.months_total > 0 ? i.total_amount / i.months_total : 0
-    return sum + monthlyAmt
+  // ── Helper: get start (year, month) for an installment ──────────────────────
+  // Priority: first_payment_date → next_billing_date → created_at
+  function getStartYM(item: InstallmentOut): { y: number; m: number } {
+    const src = item.first_payment_date ?? item.next_billing_date ?? item.created_at
+    const d = new Date(src)
+    return { y: d.getFullYear(), m: d.getMonth() } // 0-indexed month
+  }
+
+  // ── Helper: check if installment is active in a given (year, month0) ─────────
+  function isActiveIn(item: InstallmentOut, targetY: number, targetM: number): boolean {
+    const { y: sy, m: sm } = getStartYM(item)
+    const offset = (targetY - sy) * 12 + (targetM - sm)
+    // Active if: offset is within the unpaid range [months_paid, months_total)
+    return offset >= item.months_paid && offset < item.months_total
+  }
+
+  // ── Per-installment monthly amount ───────────────────────────────────────────
+  function monthlyAmt(item: InstallmentOut): number {
+    return item.months_total > 0 ? item.total_amount / item.months_total : 0
+  }
+
+  // ── Current month total (only active plans this month) ───────────────────────
+  const monthlyTotal = items.reduce((sum: number, item: InstallmentOut) => {
+    return isActiveIn(item, NOW.getFullYear(), NOW.getMonth())
+      ? sum + monthlyAmt(item)
+      : sum
   }, 0)
 
   const totalOutstanding = items.reduce((sum: number, i: InstallmentOut) => {
@@ -189,12 +248,18 @@ export default function Installments() {
     return sum + remaining
   }, 0)
 
-  // Build repayment forecast: next 4 months from now, using real installment data
-  const forecastMonths = Array.from({ length: 4 }, (_, idx) => {
+  // ── Build forecast: next 6 months, summing only active plans per month ────────
+  const forecastMonths = Array.from({ length: 6 }, (_, idx) => {
     const d = new Date(NOW.getFullYear(), NOW.getMonth() + idx, 1)
+    const ty = d.getFullYear()
+    const tm = d.getMonth()
+    const total = items.reduce((sum: number, item: InstallmentOut) => {
+      return isActiveIn(item, ty, tm) ? sum + monthlyAmt(item) : sum
+    }, 0)
     return {
       label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase(),
-      total: monthlyTotal, // same monthly total for all upcoming months
+      total,
+      hasPayments: total > 0,
     }
   })
 
@@ -225,7 +290,7 @@ export default function Installments() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-label text-xs font-bold uppercase tracking-widest text-black/40 mb-2">MONTHLY TOTAL</p>
+                <p className="font-label text-xs font-bold uppercase tracking-widest text-black/40 mb-2">THIS MONTH DUE</p>
                 {isLoading
                   ? <Skeleton className="h-12 w-44 ml-auto" />
                   : <p className="font-headline font-black text-3xl md:text-5xl tracking-tighter">
@@ -331,13 +396,19 @@ export default function Installments() {
                   ) : (
                     forecastMonths.map((f, i) => (
                       <div key={f.label}
-                        className={`flex justify-between items-center px-8 py-5 ${i < forecastMonths.length - 1 ? 'border-b border-black' : ''} hover:bg-black hover:text-white group transition-colors`}>
+                        className={`flex justify-between items-center px-8 py-4 ${i < forecastMonths.length - 1 ? 'border-b border-black' : ''} ${f.hasPayments ? 'hover:bg-black hover:text-white group' : 'opacity-40'} transition-colors`}>
                         <span className="font-label text-xs font-bold uppercase tracking-widest text-black/60 group-hover:text-white/60">{f.label}</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-headline font-black text-xl tracking-tighter">
-                            ฿{f.total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-                          </span>
-                          <span className="material-symbols-outlined text-base">arrow_forward</span>
+                          {f.hasPayments ? (
+                            <>
+                              <span className="font-headline font-black text-xl tracking-tighter">
+                                ฿{f.total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                              </span>
+                              <span className="material-symbols-outlined text-base">arrow_forward</span>
+                            </>
+                          ) : (
+                            <span className="font-label text-xs font-bold uppercase tracking-widest text-black/30">—</span>
+                          )}
                         </div>
                       </div>
                     ))
